@@ -2,9 +2,9 @@ const tabs = document.querySelectorAll('.tab');
 const contentBox = document.getElementById('content-box');
 
 const contentMap = {
-    saffa: 'Дуа, читаемая на Саффе. Текст дуа...',
-    zhasyl: 'Дуа в зоне Жасыл. Текст дуа...',
-    marwa: 'Дуа на Марве. Текст дуа...',
+    saffa: 'Дуа на Саффе. Спокойный текст для чтения...',
+    zhasyl: 'Дуа в зелёной зоне. Сосредоточение и намерение...',
+    marwa: 'Дуа на Марве. Завершение и благодарность...',
     step1: 'Дуа – проход 1',
     step2: 'Дуа – проход 2',
     step3: 'Дуа – проход 3',
@@ -19,7 +19,10 @@ tabs.forEach(tab => {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
 
-        const key = tab.dataset.content;
-        contentBox.innerHTML = `<p>${contentMap[key]}</p>`;
+        contentBox.style.opacity = 0;
+        setTimeout(() => {
+            contentBox.innerHTML = `<p>${contentMap[tab.dataset.content]}</p>`;
+            contentBox.style.opacity = 1;
+        }, 150);
     });
 });
