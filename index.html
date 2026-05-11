@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Умра — Священный путь паломника</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Manrope:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --gold: #d4af6a;
+  --gold-bright: #f4d896;
+  --gold-dim: #8a6f3f;
+  --bg: #07060a;
+  --bg-soft: #14110c;
+  --text: #e8dfc9;
+  --text-dim: #8a8478;
+  --kaaba: #1a1410;
+  --kaaba-cloth: #0a0805;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Manrope', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(212, 175, 106, 0.08), transparent 50%),
+    radial-gradient(ellipse at 30% 70%, rgba(212, 175, 106, 0.04), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.83 0 0 0 0 0.69 0 0 0 0 0.42 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+.page {
+  position: relative;
+  z-index: 2;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* Заголовок */
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 12px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-dim);
+  max-width: 540px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Сетка: карта слева, дуа-панель справа */
+.layout {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 40px;
+  align-items: start;
+  margin-top: 40px;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Карта/сцена */
+.scene-wrap {
+  position: relative;
+  perspective: 2000px;
+}
+
+.scene-stage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  transform: rotateX(12deg);
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.scene-wrap:hover .scene-stage {
+  transform: rotateX(6deg) rotateY(-3deg);
+}
+
+.scene-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 30px 60px rgba(212, 175, 106, 0.18));
+}
+
+/* Кааба */
+.kaaba-body {
+  fill: var(--kaaba-cloth);
+  stroke: var(--gold-dim);
+  stroke-width: 1;
+}
+
+.kaaba-band {
+  fill: var(--gold);
+  opacity: 0.9;
+}
+
+.kaaba-door {
+  fill: var(--gold);
+  opacity: 0.7;
+}
+
+.kaaba-script {
+  font-family: 'Amiri', serif;
+  fill: var(--gold-bright);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* Хаджар Аль-Асвад (черный камень) */
+.hajar-aswad {
+  fill: #2a1a0a;
+  stroke: var(--gold-bright);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 6px var(--gold));
+}
+
+.hajar-glow {
+  fill: none;
+  stroke: var(--gold-bright);
+  stroke-width: 0.5;
+  opacity: 0;
+}
+
+/* Круги Тавваф */
+.tawaf-ring {
+  fill: none;
+  stroke: rgba(212, 175, 106, 0.1);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.tawaf-trail {
+  fill: none;
+  stroke: var(--gold-bright);
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px var(--gold));
+  stroke-dasharray: 1500;
+  stroke-dashoffset: 1500;
+}
+
+/* Макам Ибрагим */
+.maqam {
+  fill: var(--bg-soft);
+  stroke: var(--gold);
+  stroke-width: 1.5;
+}
+
+.maqam-dome {
+  fill: var(--gold);
+  opacity: 0.85;
+}
+
+.maqam-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 11px;
+  fill: var(--text);
+  letter-spacing: 0.1em;
+}
+
+/* Зам-Зам */
+.zamzam-marker {
+  fill: var(--bg-soft);
+  stroke: var(--gold);
+  stroke-width: 1.5;
+}
+
+.zamzam-water {
+  fill: #4a8aa8;
+  opacity: 0.6;
+}
+
+/* Сафа и Марва */
+.hill {
+  fill: var(--bg-soft);
+  stroke: var(--gold);
+  stroke-width: 1.5;
+}
+
+.hill-active {
+  fill: var(--gold);
+  filter: drop-shadow(0 0 12px var(--gold-bright));
+}
+
+.sai-corridor {
+  fill: rgba(212, 175, 106, 0.04);
+  stroke: rgba(212, 175, 106, 0.15);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.sai-trail {
+  fill: none;
+  stroke: var(--gold-bright);
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px var(--gold));
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+}
+
+.green-marker {
+  fill: #4a9560;
+  opacity: 0;
+}
+
+/* Лейблы */
+.label {
+  font-family: 'Cormorant Garamond', serif;
+  fill: var(--text);
+  letter-spacing: 0.05em;
+}
+
+.label-sm {
+  font-family: 'Manrope', sans-serif;
+  fill: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* Паломник */
+.pilgrim {
+  filter: drop-shadow(0 0 8px var(--gold-bright)) drop-shadow(0 0 18px var(--gold));
+}
+
+/* Счётчик кругов */
+.round-counter {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(7, 6, 10, 0.85);
+  border: 1px solid rgba(212, 175, 106, 0.3);
+  padding: 12px 18px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.round-counter.visible { opacity: 1; }
+
+.round-counter-num {
+  font-size: 28px;
+  color: var(--gold-bright);
+  margin-right: 4px;
+}
+
+/* Панель ДУА */
+.dua-panel {
+  background: linear-gradient(180deg, rgba(20, 17, 12, 0.6), rgba(7, 6, 10, 0.9));
+  border: 1px solid rgba(212, 175, 106, 0.2);
+  padding: 32px;
+  position: sticky;
+  top: 24px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@media (max-width: 1024px) {
+  .dua-panel { position: relative; top: 0; }
+}
+
+.dua-step-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 56px;
+  font-weight: 300;
+  color: var(--gold-dim);
+  line-height: 1;
+  margin-bottom: 8px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease;
+}
+
+.dua-step-name {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease 0.05s;
+}
+
+.dua-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  color: var(--gold-bright);
+  margin-bottom: 20px;
+  line-height: 1.2;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease 0.1s;
+}
+
+.dua-arabic {
+  font-family: 'Amiri', serif;
+  font-size: 24px;
+  color: var(--text);
+  line-height: 1.8;
+  text-align: right;
+  direction: rtl;
+  margin-bottom: 16px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(212, 175, 106, 0.15);
+  border-bottom: 1px solid rgba(212, 175, 106, 0.15);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease 0.15s;
+}
+
+.dua-translit {
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  color: var(--gold);
+  font-style: italic;
+  margin-bottom: 16px;
+  line-height: 1.6;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease 0.2s;
+}
+
+.dua-translation {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease 0.25s;
+}
+
+.dua-context {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  padding-top: 16px;
+  border-top: 1px solid rgba(212, 175, 106, 0.1);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease 0.3s;
+  margin-top: auto;
+}
+
+.dua-panel.visible .dua-step-num,
+.dua-panel.visible .dua-step-name,
+.dua-panel.visible .dua-title,
+.dua-panel.visible .dua-arabic,
+.dua-panel.visible .dua-translit,
+.dua-panel.visible .dua-translation,
+.dua-panel.visible .dua-context {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Контролы */
+.controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 32px;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  padding: 12px 28px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.btn:hover {
+  background: rgba(212, 175, 106, 0.1);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  box-shadow: 0 0 20px rgba(212, 175, 106, 0.2);
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: var(--bg);
+  border-color: var(--gold-bright);
+}
+
+.btn-primary:hover {
+  color: var(--bg);
+  box-shadow: 0 0 30px rgba(244, 216, 150, 0.4);
+}
+
+/* Прогресс */
+.progress {
+  width: 100%;
+  max-width: 700px;
+  margin: 24px auto 0;
+  height: 1px;
+  background: rgba(212, 175, 106, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  width: 0%;
+  box-shadow: 0 0 8px var(--gold);
+}
+
+/* Дыхательная анимация Каабы */
+@keyframes kaabaBreath {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(212, 175, 106, 0.2)); }
+  50% { filter: drop-shadow(0 0 35px rgba(212, 175, 106, 0.35)); }
+}
+
+.kaaba-group {
+  animation: kaabaBreath 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-stage { transform: none; transition: none; }
+  .kaaba-group { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .page { padding: 32px 16px 60px; }
+  .scene-stage { transform: rotateX(6deg); }
+  .dua-panel { padding: 24px; min-height: 400px; }
+  .dua-arabic { font-size: 20px; }
+  .controls { flex-direction: column; width: 100%; }
+  .btn { width: 100%; }
+  .round-counter { font-size: 12px; padding: 8px 12px; }
+  .round-counter-num { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="header">
+    <div class="kicker">Священный обряд</div>
+    <h1 class="title">Умра</h1>
+    <p class="subtitle">Малое паломничество. Четыре столпа духовного очищения — от Чёрного камня до встречи Хаджар у Зам-Зама.</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- ЛЕВАЯ КОЛОНКА: сцена с анимацией -->
+    <div class="scene-wrap">
+      <div class="round-counter" id="roundCounter">
+        <span class="round-counter-num" id="roundNum">1</span>
+        <span id="roundLabel">круг из 7</span>
+      </div>
+
+      <div class="scene-stage">
+        <svg class="scene-svg" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet">
+
+          <defs>
+            <radialGradient id="haramGround" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#1f1812" />
+              <stop offset="60%" stop-color="#0d0a07" />
+              <stop offset="100%" stop-color="#050405" />
+            </radialGradient>
+
+            <radialGradient id="kaabaGlow">
+              <stop offset="0%" stop-color="#f4d896" stop-opacity="0.3" />
+              <stop offset="100%" stop-color="#f4d896" stop-opacity="0" />
+            </radialGradient>
+
+            <radialGradient id="zamzamGlow">
+              <stop offset="0%" stop-color="#6ab8d0" stop-opacity="0.4" />
+              <stop offset="100%" stop-color="#6ab8d0" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+
+          <!-- Фон-подложка площади Аль-Харам -->
+          <rect width="800" height="800" fill="url(#haramGround)" />
+
+          <!-- Декоративные точки-молящиеся вокруг -->
+          <g opacity="0.3">
+            <circle cx="120" cy="140" r="0.8" fill="#d4af6a"/>
+            <circle cx="180" cy="200" r="0.6" fill="#d4af6a"/>
+            <circle cx="650" cy="160" r="0.7" fill="#d4af6a"/>
+            <circle cx="700" cy="280" r="0.5" fill="#d4af6a"/>
+            <circle cx="100" cy="500" r="0.6" fill="#d4af6a"/>
+            <circle cx="160" cy="640" r="0.7" fill="#d4af6a"/>
+            <circle cx="660" cy="600" r="0.5" fill="#d4af6a"/>
+            <circle cx="720" cy="500" r="0.6" fill="#d4af6a"/>
+            <circle cx="400" cy="80" r="0.7" fill="#d4af6a"/>
+            <circle cx="400" cy="730" r="0.6" fill="#d4af6a"/>
+          </g>
+
+          <!-- Кольца Маатаф (область вокруг Каабы) -->
+          <g class="tawaf-rings">
+            <circle class="tawaf-ring" cx="400" cy="400" r="90" />
+            <circle class="tawaf-ring" cx="400" cy="400" r="110" />
+            <circle class="tawaf-ring" cx="400" cy="400" r="130" />
+            <circle class="tawaf-ring" cx="400" cy="400" r="150" />
+          </g>
+
+          <!-- ===================== САФА И МАРВА (горы по бокам) ===================== -->
+
+          <!-- Коридор Саи между Сафой и Марвой -->
+          <path class="sai-corridor" d="M 80 720 L 80 740 L 720 740 L 720 720 Z" />
+
+          <!-- Зелёные маркеры (где мужчины бегут) -->
+          <rect class="green-marker" id="greenMarker1" x="320" y="724" width="6" height="14" />
+          <rect class="green-marker" id="greenMarker2" x="474" y="724" width="6" height="14" />
+
+          <!-- Сафа (слева) -->
+          <g class="hill-group" data-id="safa">
+            <circle cx="80" cy="730" r="28" fill="url(#kaabaGlow)" />
+            <path id="safaHill" class="hill" d="M 60 740 L 70 715 L 80 720 L 90 705 L 100 740 Z" />
+            <text class="label" x="80" y="775" text-anchor="middle" style="font-size: 14px;">Сафа</text>
+            <text class="label-sm" x="80" y="788" text-anchor="middle">الصفا</text>
+          </g>
+
+          <!-- Марва (справа) -->
+          <g class="hill-group" data-id="marwa">
+            <circle cx="720" cy="730" r="28" fill="url(#kaabaGlow)" />
+            <path id="marwaHill" class="hill" d="M 700 740 L 710 718 L 720 705 L 730 720 L 740 740 Z" />
+            <text class="label" x="720" y="775" text-anchor="middle" style="font-size: 14px;">Марва</text>
+            <text class="label-sm" x="720" y="788" text-anchor="middle">المروة</text>
+          </g>
+
+          <!-- Расстояние Саи -->
+          <text class="label-sm" x="400" y="755" text-anchor="middle" opacity="0.5">~ 450 м · 7 раз</text>
+
+          <!-- Линия пути Саи (анимируется) -->
+          <path id="saiPath" class="sai-trail"
+                d="M 80 730 L 720 730" />
+
+          <!-- ===================== ЗАМ-ЗАМ ===================== -->
+          <g class="zamzam-group" data-id="zamzam">
+            <circle cx="600" cy="500" r="35" fill="url(#zamzamGlow)" opacity="0" id="zamzamHalo" />
+            <circle class="zamzam-marker" cx="600" cy="500" r="14" />
+            <!-- стилизованная капля воды -->
+            <path d="M 600 491 Q 593 500, 596 506 Q 600 510, 604 506 Q 607 500, 600 491 Z" class="zamzam-water" />
+            <text class="label" x="600" y="528" text-anchor="middle" style="font-size: 12px;">Зам-Зам</text>
+          </g>
+
+          <!-- ===================== МАКАМ ИБРАГИМ ===================== -->
+          <g class="maqam-group" data-id="maqam">
+            <circle cx="490" cy="290" r="28" fill="url(#kaabaGlow)" opacity="0" id="maqamHalo" />
+            <!-- стилизованная купольная беседка -->
+            <g transform="translate(490, 290)">
+              <path class="maqam" d="M -16 6 L -16 -8 Q -16 -22, 0 -22 Q 16 -22, 16 -8 L 16 6 Z" />
+              <ellipse class="maqam-dome" cx="0" cy="-22" rx="16" ry="6" />
+              <circle cx="0" cy="-30" r="2" fill="var(--gold-bright)" />
+              <line x1="0" y1="-30" x2="0" y2="-26" stroke="var(--gold-bright)" stroke-width="1"/>
+              <!-- камень внутри -->
+              <rect x="-5" y="-4" width="10" height="8" fill="var(--gold-dim)" opacity="0.6" />
+            </g>
+            <text class="maqam-label" x="490" y="320" text-anchor="middle">Макам Ибрагим</text>
+          </g>
+
+          <!-- ===================== КААБА (центр) ===================== -->
+
+          <!-- Свечение под Каабой -->
+          <circle cx="400" cy="400" r="75" fill="url(#kaabaGlow)" />
+
+          <g class="kaaba-group">
+            <!-- Сама Кааба (вид сверху, вытянутый прямоугольник) -->
+            <rect class="kaaba-body" x="370" y="375" width="60" height="50" />
+
+            <!-- Кисва — золотая полоса (хизам) -->
+            <rect class="kaaba-band" x="370" y="383" width="60" height="3" />
+
+            <!-- Дверь (на восточной стороне, ближе к Хаджар Аль-Асвад) -->
+            <rect class="kaaba-door" x="421" y="395" width="3" height="14" />
+
+            <!-- Стилизованная каллиграфия на кисве -->
+            <text class="kaaba-script" x="400" y="386" text-anchor="middle">ﷲ</text>
+
+            <!-- Хаджар Аль-Асвад (Чёрный камень) — в восточном углу Каабы (правый верхний угол на схеме) -->
+            <circle class="hajar-glow" cx="430" cy="375" r="14" id="hajarGlow1" />
+            <circle class="hajar-glow" cx="430" cy="375" r="14" id="hajarGlow2" />
+            <circle class="hajar-aswad" cx="430" cy="375" r="5" />
+
+            <!-- Указатель на Хаджар Аль-Асвад -->
+            <g id="hajarLabel" opacity="0">
+              <line x1="430" y1="375" x2="490" y2="335" stroke="var(--gold)" stroke-width="0.5" stroke-dasharray="2 2"/>
+              <text class="label-sm" x="495" y="335" style="font-size: 8px;">ХАДЖАР АЛЬ-АСВАД</text>
+            </g>
+          </g>
+
+          <!-- Лейбл Каабы -->
+          <text class="label-sm" x="400" y="450" text-anchor="middle" opacity="0.7">КААБА</text>
+
+          <!-- ===================== ТРАЕКТОРИЯ ТАВВАФ ===================== -->
+          <!--
+            Тавваф против часовой стрелки, начиная от Хаджар Аль-Асвад (правый верхний угол Каабы).
+            Радиус трека ~75 единиц от центра Каабы (400, 400).
+            Старт в точке (475, 400) — справа от Каабы (со стороны Хаджар Аль-Асвад).
+          -->
+          <path id="tawafPath"
+                class="tawaf-trail"
+                d="M 475 400
+                   A 75 75 0 0 0 325 400
+                   A 75 75 0 0 0 475 400" />
+
+          <!-- ===================== ИКОНКА ПАЛОМНИКА ===================== -->
+          <g id="pilgrim" class="pilgrim" opacity="0">
+            <circle r="5" fill="var(--gold-bright)" />
+            <circle r="10" fill="none" stroke="var(--gold-bright)" stroke-width="0.5" opacity="0.5" />
+            <circle r="16" fill="none" stroke="var(--gold)" stroke-width="0.3" opacity="0.3" />
+          </g>
+
+        </svg>
+      </div>
+    </div>
+
+    <!-- ПРАВАЯ КОЛОНКА: панель ДУА -->
+    <aside class="dua-panel" id="duaPanel">
+      <div class="dua-step-num" id="duaStepNum">00</div>
+      <div class="dua-step-name" id="duaStepName">Подготовка</div>
+      <div class="dua-title" id="duaTitle">Намерение совершить Умру</div>
+      <div class="dua-arabic" id="duaArabic">لَبَّيْكَ ٱللَّٰهُمَّ بِعُمْرَةٍ</div>
+      <div class="dua-translit" id="duaTranslit">Лаббайка-ллахумма би-‘умратин</div>
+      <div class="dua-translation" id="duaTranslation">«Вот я перед Тобой, о Аллах, ради совершения Умры».</div>
+      <div class="dua-context" id="duaContext">Перед началом обряда паломник входит в состояние ихрама и произносит ниййа. С этого момента начинается священный путь.</div>
+    </aside>
+
+  </div>
+
+  <div class="progress">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="playBtn">Начать Умру</button>
+    <button class="btn" id="resetBtn">Сначала</button>
+  </div>
+
+</div>
+
+<script>
+gsap.registerPlugin(MotionPathPlugin);
+
+/* ============================================================
+   ДАННЫЕ ЭТАПОВ УМРЫ С ДУА
+   ============================================================ */
+const stages = [
+  // ===== ТАВВАФ — 7 кругов =====
+  {
+    type: 'tawaf',
+    round: 1,
+    num: '01',
+    name: 'Тавваф · Круг первый',
+    title: 'Истилам Хаджар Аль-Асвад',
+    arabic: 'بِسْمِ اللَّهِ، اللَّهُ أَكْبَرُ',
+    translit: 'Бисми-Ллахи, Аллаху Акбар',
+    translation: 'Во имя Аллаха, Аллах Велик.',
+    context: 'Паломник встаёт напротив Чёрного камня в восточном углу Каабы. Поднимает руку в его сторону и произносит такбир. Это начало Тавваф — обхода против часовой стрелки.',
+    duration: 4
+  },
+  {
+    type: 'tawaf', round: 2, num: '02', name: 'Тавваф · Круг второй',
+    title: 'Дуа между Рукн Йамани и Чёрным камнем',
+    arabic: 'رَبَّنَا آتِنَا فِي ٱلدُّنْيَا حَسَنَةً وَفِي ٱلْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ ٱلنَّارِ',
+    translit: 'Раббана атина фид-дунья хасанатан ва филь-ахирати хасанатан ва кина азабан-нар',
+    translation: 'Господь наш! Даруй нам в этом мире благо и в Последней жизни благо, и защити нас от мук Огня.',
+    context: 'Эта дуа из Корана (2:201) читается между Йеменским углом и Чёрным камнем — особо благословенный участок.',
+    duration: 3.5
+  },
+  {
+    type: 'tawaf', round: 3, num: '03', name: 'Тавваф · Круг третий',
+    title: 'Поминание Аллаха',
+    arabic: 'سُبْحَانَ اللَّهِ وَالْحَمْدُ لِلَّهِ وَلَا إِلَهَ إِلَّا اللَّهُ وَاللَّهُ أَكْبَرُ',
+    translit: 'Субханаллахи валь-хамдулилляхи ва ля иляха илляллаху валлаху акбар',
+    translation: 'Слава Аллаху, и хвала Аллаху, и нет божества, кроме Аллаха, и Аллах Велик.',
+    context: 'Первые три круга мужчины совершают рамалем — лёгким бегом, расправив плечи. Это сунна со времён Пророка ﷺ.',
+    duration: 3.5
+  },
+  {
+    type: 'tawaf', round: 4, num: '04', name: 'Тавваф · Круг четвёртый',
+    title: 'Просьба о прощении',
+    arabic: 'رَبِّ اغْفِرْ وَارْحَمْ وَاعْفُ عَمَّا تَعْلَمُ، إِنَّكَ أَنْتَ الْأَعَزُّ الْأَكْرَمُ',
+    translit: 'Рабби-гфир ва-рхам ва-‘фу ‘амма та‘лям, иннака анталь-а‘аззуль-акрам',
+    translation: 'Господь мой, прости, помилуй и прости то, что Ты знаешь. Поистине, Ты — Самый Великий, Самый Щедрый.',
+    context: 'С четвёртого круга паломник переходит на спокойный шаг. Сердце устремлено к Каабе — Дому, который не покидает память.',
+    duration: 3.5
+  },
+  {
+    type: 'tawaf', round: 5, num: '05', name: 'Тавваф · Круг пятый',
+    title: 'Дуа единобожия',
+    arabic: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ',
+    translit: 'Ля иляха илляллаху вахдаху ля шарика лях, ляхуль-мульку ва ляхуль-хамд',
+    translation: 'Нет божества, кроме Аллаха, Единого, нет у Него сотоварища. Ему принадлежит власть и Ему — хвала.',
+    context: 'Каждый круг — символический шаг к Седьмому небу. Семь обходов означают полноту преданности Единому.',
+    duration: 3.5
+  },
+  {
+    type: 'tawaf', round: 6, num: '06', name: 'Тавваф · Круг шестой',
+    title: 'Личная мольба',
+    arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ',
+    translit: 'Аллахумма инни ас’алюкаль-‘афва валь-‘афията фид-дунья валь-ахира',
+    translation: 'О Аллах, я прошу у Тебя прощения и благополучия в этом мире и в Последней жизни.',
+    context: 'Тавваф — время личной беседы с Господом. Дозволено просить на любом языке, своими словами.',
+    duration: 3.5
+  },
+  {
+    type: 'tawaf', round: 7, num: '07', name: 'Тавваф · Круг седьмой',
+    title: 'Завершение обхода',
+    arabic: 'اللَّهُمَّ تَقَبَّلْ مِنِّي إِنَّكَ أَنْتَ السَّمِيعُ الْعَلِيمُ',
+    translit: 'Аллахумма такаббаль минни иннака антас-самиу-ль-‘алим',
+    translation: 'О Аллах, прими от меня! Поистине, Ты — Слышащий, Знающий.',
+    context: 'Седьмой круг завершается возвращением к Чёрному камню. Тавваф окончен. Паломник покрывает оба плеча.',
+    duration: 3.5
+  },
+
+  // ===== МАКАМ ИБРАГИМ =====
+  {
+    type: 'maqam',
+    num: '08',
+    name: 'Макам Ибрагим',
+    title: 'Два рак‘ата за Макам Ибрагим',
+    arabic: 'وَاتَّخِذُوا مِنْ مَقَامِ إِبْرَاهِيمَ مُصَلًّى',
+    translit: 'Ва-ттахизу мин макъами Ибрахима мусалла',
+    translation: '«И сделайте Макам Ибрагима местом молитвы». (Коран, 2:125)',
+    context: 'Паломник встаёт за местом, где стоял Пророк Ибрагим, строя Каабу. Совершает два рак‘ата: в первом — суру «Аль-Кафирун», во втором — «Аль-Ихлас».',
+    duration: 4
+  },
+
+  // ===== ЗАМ-ЗАМ =====
+  {
+    type: 'zamzam',
+    num: '09',
+    name: 'Колодец Зам-Зам',
+    title: 'Питьё благословенной воды',
+    arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا وَاسِعًا، وَشِفَاءً مِنْ كُلِّ دَاءٍ',
+    translit: 'Аллахумма инни ас’алюка ‘ильман нафи‘ан, ва ризкан васи‘ан, ва шифа’ан мин кулли да’',
+    translation: 'О Аллах, я прошу у Тебя полезного знания, обильного удела и исцеления от всякой болезни.',
+    context: 'Паломник пьёт воду Зам-Зам стоя, обратившись к Каабе, в три глотка. Пророк ﷺ сказал: «Зам-Зам — пища для голодного и исцеление от болезней».',
+    duration: 4
+  },
+
+  // ===== САИ — 7 проходов =====
+  {
+    type: 'sai', round: 1, num: '10', name: 'Саи · От Сафы к Марве',
+    title: 'Восхождение на Сафу',
+    arabic: 'إِنَّ الصَّفَا وَالْمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ',
+    translit: 'Иннас-Сафа валь-Марвата мин ша‘а’ириллях',
+    translation: '«Поистине, Сафа и Марва — из обрядов Аллаха». (Коран, 2:158)',
+    context: 'Паломник восходит на Сафу, обращается к Каабе, поднимает руки и произносит такбир. С этого аята начинается Саи.',
+    duration: 3
+  },
+  {
+    type: 'sai', round: 2, num: '11', name: 'Саи · От Марвы к Сафе',
+    title: 'Возвращение к Сафе',
+    arabic: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ',
+    translit: 'Ля иляха илляллаху вахдах, анджаза ва‘даху, ва насара ‘абдах',
+    translation: 'Нет божества, кроме Одного Аллаха. Он исполнил Своё обещание и поддержал Своего раба.',
+    context: 'Каждое прохождение между холмами — один шавт. Между зелёными метками мужчины движутся быстрее.',
+    duration: 3
+  },
+  {
+    type: 'sai', round: 3, num: '12', name: 'Саи · Третий шавт',
+    title: 'Память о Хаджар',
+    arabic: 'رَبِّ اغْفِرْ وَارْحَمْ، إِنَّكَ أَنْتَ الْأَعَزُّ الْأَكْرَمُ',
+    translit: 'Рабби-гфир ва-рхам, иннака анталь-а‘аззуль-акрам',
+    translation: 'Господь, прости и помилуй! Поистине, Ты — Самый Великий, Самый Щедрый.',
+    context: 'Хаджар, мать Исмаиля, бежала между этими холмами в поисках воды для сына. Её доверие Аллаху породило источник Зам-Зам.',
+    duration: 3
+  },
+  {
+    type: 'sai', round: 4, num: '13', name: 'Саи · Четвёртый шавт',
+    title: 'Личная мольба',
+    arabic: 'اللَّهُمَّ رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً',
+    translit: 'Аллахумма раббана атина фид-дунья хасанатан ва филь-ахирати хасана',
+    translation: 'О Аллах, Господь наш, даруй нам благо в этом мире и благо в Последней жизни.',
+    context: 'Между холмами нет обязательных слов. Паломник может молиться за себя, за родных, за умму.',
+    duration: 3
+  },
+  {
+    type: 'sai', round: 5, num: '14', name: 'Саи · Пятый шавт',
+    title: 'Поминание Аллаха',
+    arabic: 'سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللَّهُ',
+    translit: 'Субханаллах, валь-хамдулиллях, ва ля иляха илляллах',
+    translation: 'Слава Аллаху, хвала Аллаху, нет божества, кроме Аллаха.',
+    context: 'Зикр успокаивает сердце. Каждый шаг — благодарность за то, что Аллах привёл в Свой Дом.',
+    duration: 3
+  },
+  {
+    type: 'sai', round: 6, num: '15', name: 'Саи · Шестой шавт',
+    title: 'Просьба о принятии',
+    arabic: 'اللَّهُمَّ تَقَبَّلْ مِنَّا، إِنَّكَ أَنْتَ السَّمِيعُ الْعَلِيمُ',
+    translit: 'Аллахумма такаббаль минна, иннака антас-сами‘уль-‘алим',
+    translation: 'О Аллах, прими от нас! Поистине, Ты — Слышащий, Знающий.',
+    context: 'К концу Саи усталость становится частью поклонения — повторение пути Хаджар через века.',
+    duration: 3
+  },
+  {
+    type: 'sai', round: 7, num: '16', name: 'Саи · Седьмой шавт',
+    title: 'Завершение в Марве',
+    arabic: 'الْحَمْدُ لِلَّهِ الَّذِي بَلَّغَنِي بَيْتَهُ الْحَرَامَ',
+    translit: 'Альхамду лилляхи-ллязи балляганий байтахуль-харам',
+    translation: 'Хвала Аллаху, Который дал мне достичь Его Священного Дома.',
+    context: 'Саи завершается в Марве. Паломник благодарит Господа.',
+    duration: 3
+  },
+
+  // ===== СТРИЖКА =====
+  {
+    type: 'halq',
+    num: '17',
+    name: 'Халк / Тахсир',
+    title: 'Стрижка волос — выход из ихрама',
+    arabic: 'اللَّهُمَّ اجْعَلْ لِي بِكُلِّ شَعْرَةٍ نُورًا',
+    translit: 'Аллахумма-дж‘аль ли би-кулли ша‘ратин нура',
+    translation: 'О Аллах, сделай для меня свет за каждый волос.',
+    context: 'Мужчины полностью бреют голову (халк) или коротко стригут (тахсир). Женщины срезают с кончиков волос длиной с фалангу пальца. С этим обряд Умры завершён, и запреты ихрама сняты.',
+    duration: 3
+  }
+];
+
+/* ============================================================
+   DOM
+   ============================================================ */
+const playBtn = document.getElementById('playBtn');
+const resetBtn = document.getElementById('resetBtn');
+const duaPanel = document.getElementById('duaPanel');
+const progressFill = document.getElementById('progressFill');
+const pilgrim = document.getElementById('pilgrim');
+const roundCounter = document.getElementById('roundCounter');
+const roundNum = document.getElementById('roundNum');
+const roundLabel = document.getElementById('roundLabel');
+
+let masterTl = null;
+let isPlaying = false;
+
+/* ============================================================
+   ОТРИСОВКА ИНФО
+   ============================================================ */
+function setDua(stage) {
+  duaPanel.classList.remove('visible');
+  setTimeout(() => {
+    document.getElementById('duaStepNum').textContent = stage.num;
+    document.getElementById('duaStepName').textContent = stage.name;
+    document.getElementById('duaTitle').textContent = stage.title;
+    document.getElementById('duaArabic').textContent = stage.arabic;
+    document.getElementById('duaTranslit').textContent = stage.translit;
+    document.getElementById('duaTranslation').textContent = stage.translation;
+    document.getElementById('duaContext').textContent = stage.context;
+    duaPanel.classList.add('visible');
+  }, 300);
+}
+
+function setRoundCounter(stage) {
+  if (stage.type === 'tawaf') {
+    roundCounter.classList.add('visible');
+    roundNum.textContent = stage.round;
+    roundLabel.textContent = 'круг Тавваф из 7';
+  } else if (stage.type === 'sai') {
+    roundCounter.classList.add('visible');
+    roundNum.textContent = stage.round;
+    roundLabel.textContent = 'шавт Саи из 7';
+  } else {
+    roundCounter.classList.remove('visible');
+  }
+}
+
+/* ============================================================
+   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+   ============================================================ */
+
+
+
+// Создать SVG-путь идеального круга Тавваф (против часовой стрелки на экране).
+// Центр Каабы (400, 400). Старт у Хаджар Аль-Асвад (восточный угол, справа).
+// Полный круг в SVG строится из двух полуокружностей по 180°.
+// В SVG ось Y направлена вниз, поэтому sweep-flag=0 даёт движение против часовой стрелки.
+// large-arc-flag=0, потому что каждая дуга ровно 180° (и идёт по короткому пути).
+function createTawafCircle(radius) {
+  const cx = 400, cy = 400;
+  const right = cx + radius; // старт у Хаджар Аль-Асвад
+  const left  = cx - radius;
+  // 1. От правой точки идём через верх к левой (полукруг сверху)
+  // 2. От левой точки идём через низ обратно к правой (полукруг снизу)
+  return `M ${right} ${cy}
+          A ${radius} ${radius} 0 0 0 ${left} ${cy}
+          A ${radius} ${radius} 0 0 0 ${right} ${cy}`;
+}
+
+function pulseHajar() {
+  const g1 = document.getElementById('hajarGlow1');
+  const g2 = document.getElementById('hajarGlow2');
+  [g1, g2].forEach((el, i) => {
+    gsap.fromTo(el,
+      { attr: { r: 5 }, opacity: 0.7 },
+      { attr: { r: 18 }, opacity: 0, duration: 1.5, delay: i * 0.5, repeat: -1, ease: 'power2.out' }
+    );
+  });
+}
+
+function stopHajarPulse() {
+  ['hajarGlow1', 'hajarGlow2'].forEach(id => {
+    const el = document.getElementById(id);
+    gsap.killTweensOf(el);
+    gsap.set(el, { opacity: 0 });
+  });
+}
+
+function highlightHill(id, on) {
+  const path = id === 'safa' ? '#safaHill' : '#marwaHill';
+  if (on) gsap.to(path, { fill: 'var(--gold)', duration: 0.4 });
+  else gsap.to(path, { fill: 'var(--bg-soft)', duration: 0.6 });
+}
+
+/* ============================================================
+   СБРОС
+   ============================================================ */
+function reset() {
+  if (masterTl) masterTl.kill();
+  isPlaying = false;
+  playBtn.textContent = 'Начать Умру';
+
+  gsap.set('#tawafPath', { strokeDashoffset: 1500 });
+  gsap.set('#saiPath', { strokeDashoffset: 2000 });
+  gsap.set(pilgrim, { opacity: 0, x: 0, y: 0 });
+  gsap.set('#hajarLabel', { opacity: 0 });
+  gsap.set('#maqamHalo', { opacity: 0 });
+  gsap.set('#zamzamHalo', { opacity: 0 });
+  gsap.set('#greenMarker1, #greenMarker2', { opacity: 0 });
+  gsap.set(progressFill, { width: '0%' });
+  stopHajarPulse();
+  highlightHill('safa', false);
+  highlightHill('marwa', false);
+  roundCounter.classList.remove('visible');
+
+  setDua({
+    num: '00',
+    name: 'Подготовка',
+    title: 'Намерение совершить Умру',
+    arabic: 'لَبَّيْكَ ٱللَّٰهُمَّ بِعُمْرَةٍ',
+    translit: 'Лаббайка-ллахумма би-‘умратин',
+    translation: '«Вот я перед Тобой, о Аллах, ради совершения Умры».',
+    context: 'Перед началом обряда паломник входит в состояние ихрама и произносит ниййа. С этого момента начинается священный путь.'
+  });
+}
+
+/* ============================================================
+   ЗАПУСК АНИМАЦИИ
+   ============================================================ */
+function play() {
+  if (isPlaying) {
+    masterTl.pause();
+    playBtn.textContent = 'Продолжить';
+    isPlaying = false;
+    return;
+  }
+
+  if (masterTl && masterTl.progress() > 0 && masterTl.progress() < 1) {
+    masterTl.play();
+    playBtn.textContent = 'Пауза';
+    isPlaying = true;
+    return;
+  }
+
+  reset();
+  isPlaying = true;
+  playBtn.textContent = 'Пауза';
+
+  masterTl = gsap.timeline({
+    onComplete: () => {
+      isPlaying = false;
+      playBtn.textContent = 'Совершить заново';
+      gsap.to(pilgrim, { opacity: 0, duration: 1.5 });
+      roundCounter.classList.remove('visible');
+    }
+  });
+
+  // Стартовая позиция — у Хаджар Аль-Асвад
+  gsap.set(pilgrim, { opacity: 1, x: 475, y: 400 });
+  pulseHajar();
+  gsap.to('#hajarLabel', { opacity: 1, duration: 1, delay: 0.3 });
+
+  let totalProgress = 0;
+
+  stages.forEach((stage, i) => {
+    const stepWeight = 1 / stages.length;
+
+    masterTl.call(() => {
+      setDua(stage);
+      setRoundCounter(stage);
+    });
+
+    if (stage.type === 'tawaf') {
+      // Один круг Тавваф против часовой стрелки.
+      // Радиус слегка варьируется по кругу — ощущение многослойного потока паломников.
+      const radius = 75 + (stage.round - 1) * 1.5;
+      const tempPath = createTawafCircle(radius);
+      const circumference = 2 * Math.PI * radius;
+
+      // Создаём временный путь
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const tempEl = document.createElementNS(svgNS, 'path');
+      tempEl.setAttribute('d', tempPath);
+      tempEl.setAttribute('fill', 'none');
+      tempEl.setAttribute('stroke', 'rgba(244, 216, 150, 0.3)');
+      tempEl.setAttribute('stroke-width', '1.5');
+      tempEl.setAttribute('stroke-dasharray', circumference);
+      tempEl.setAttribute('stroke-dashoffset', circumference);
+      tempEl.style.filter = 'drop-shadow(0 0 4px var(--gold))';
+      document.querySelector('.scene-svg').insertBefore(tempEl, document.getElementById('pilgrim'));
+
+      masterTl
+        .to(tempEl, {
+          strokeDashoffset: 0,
+          duration: stage.duration,
+          ease: 'none'
+        })
+        .to(pilgrim, {
+          motionPath: {
+            path: tempPath,
+            autoRotate: false
+          },
+          duration: stage.duration,
+          ease: 'none'
+        }, '<')
+        .to(progressFill, {
+          width: `${(i + 1) * stepWeight * 100}%`,
+          duration: stage.duration,
+          ease: 'none'
+        }, '<')
+        .call(() => {
+          // На последнем круге — останавливаем пульс Хаджар
+          if (stage.round === 7) stopHajarPulse();
+        });
+
+    } else if (stage.type === 'maqam') {
+      // Перемещение к Макам Ибрагим
+      stopHajarPulse();
+      gsap.to('#hajarLabel', { opacity: 0, duration: 0.5 });
+
+      masterTl
+        .to(pilgrim, {
+          x: 490, y: 290,
+          duration: 1.5,
+          ease: 'power2.inOut'
+        })
+        .to('#maqamHalo', { opacity: 1, duration: 0.6 }, '<')
+        .to(progressFill, {
+          width: `${(i + 1) * stepWeight * 100}%`,
+          duration: 1.5,
+          ease: 'none'
+        }, '<')
+        // Молитва — пульсация на месте
+        .to(pilgrim, {
+          scale: 1.3,
+          duration: 0.8,
+          repeat: 2,
+          yoyo: true,
+          ease: 'sine.inOut',
+          transformOrigin: 'center'
+        });
+
+    } else if (stage.type === 'zamzam') {
+      // Переход к Зам-Зам
+      gsap.to('#maqamHalo', { opacity: 0, duration: 0.5 });
+
+      masterTl
+        .to(pilgrim, {
+          x: 600, y: 500,
+          duration: 1.5,
+          ease: 'power2.inOut'
+        })
+        .to('#zamzamHalo', { opacity: 1, duration: 0.6 }, '<')
+        .to(progressFill, {
+          width: `${(i + 1) * stepWeight * 100}%`,
+          duration: 1.5,
+          ease: 'none'
+        }, '<')
+        // три глотка — три импульса
+        .to(pilgrim, {
+          scale: 1.2,
+          duration: 0.4,
+          repeat: 5,
+          yoyo: true,
+          ease: 'sine.inOut',
+          transformOrigin: 'center'
+        });
+
+    } else if (stage.type === 'sai') {
+      // Один шавт между Сафой и Марвой
+      gsap.to('#zamzamHalo', { opacity: 0, duration: 0.5 });
+
+      // Показываем зелёные маркеры на первом шавте
+      if (stage.round === 1) {
+        masterTl.to('#greenMarker1, #greenMarker2', { opacity: 0.6, duration: 0.6 });
+      }
+
+      // Перемещаем паломника на стартовую позицию (Сафа на нечётных, Марва на чётных)
+      const startX = stage.round % 2 === 1 ? 80 : 720;
+      const endX = stage.round % 2 === 1 ? 720 : 80;
+      const fromHill = stage.round % 2 === 1 ? 'safa' : 'marwa';
+      const toHill = stage.round % 2 === 1 ? 'marwa' : 'safa';
+
+      // На первом шавте делаем телепорт к Сафе
+      if (stage.round === 1) {
+        masterTl.to(pilgrim, {
+          x: 80, y: 730,
+          duration: 1.2,
+          ease: 'power2.inOut'
+        });
+      }
+
+      masterTl
+        .call(() => highlightHill(fromHill, true))
+        .to({}, { duration: 0.5 })
+        .call(() => highlightHill(fromHill, false))
+        // Сама ходьба между холмами
+        .to(pilgrim, {
+          x: endX, y: 730,
+          duration: stage.duration,
+          ease: 'power1.inOut'
+        })
+        .to(progressFill, {
+          width: `${(i + 1) * stepWeight * 100}%`,
+          duration: stage.duration,
+          ease: 'none'
+        }, '<')
+        .call(() => highlightHill(toHill, true))
+        .to({}, { duration: 0.4 })
+        .call(() => highlightHill(toHill, false));
+
+    } else if (stage.type === 'halq') {
+      // Финал — стрижка
+      masterTl
+        .to(pilgrim, {
+          scale: 1.5,
+          opacity: 1,
+          duration: 1.2,
+          ease: 'power1.out',
+          transformOrigin: 'center'
+        })
+        .to(progressFill, {
+          width: '100%',
+          duration: 1.2,
+          ease: 'none'
+        }, '<')
+        .to(pilgrim, {
+          scale: 0.5,
+          opacity: 0,
+          duration: 1.5,
+          ease: 'power2.in',
+          transformOrigin: 'center'
+        });
+    }
+
+    // Пауза для созерцания между этапами
+    masterTl.to({}, { duration: 0.6 });
+  });
+}
+
+playBtn.addEventListener('click', play);
+resetBtn.addEventListener('click', reset);
+
+reset();
+</script>
+
+</body>
+</html>
